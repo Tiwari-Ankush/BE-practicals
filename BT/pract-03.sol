@@ -1,50 +1,58 @@
+3.  Write a smart contract on a test network, for Bank account of a customer for following 
+operations: 
+ Deposit money  
+ Withdraw Money 
+ Show balance 
+
+
+
+code: 
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.7.0 <0.9.0;
+pragma solidity >=0.7.0;
 
-// Smart Contract to manage Student Data
-contract StudentManagement {
+// Bank contract for creating accounts, depositing, withdrawing, and checking balances
+contract Bank {
+    // Mapping to store user balances and existence of accounts
+    mapping(address => uint) private userAccount;
+    mapping(address => bool) private userExists;
 
-    // Structure to store student details
-    struct Student {
-        int stud_id;            // Student ID
-        string name;            // Student Name
-        string department;      // Department Name
+    // Create a new account with an optional initial deposit
+    function createAccount() public payable returns (string memory) {
+        require(!userExists[msg.sender], "Account already exists!");
+        userAccount[msg.sender] = msg.value;  // Initial deposit if any
+        userExists[msg.sender] = true;
+        return "Account created successfully!";
     }
 
-    // Array to store multiple Student structures
-    Student[] private students;
-
-    // Function to add a new student to the system
-    function addStudent(int stud_id, string memory name, string memory department) public {
-        Student memory newStudent = Student(stud_id, name, department);  
-        students.push(newStudent);  // Add student to the array
+    // Deposit money into the user's account
+    function deposit() public payable returns (string memory) {
+        require(userExists[msg.sender], "Account does not exist!");
+        require(msg.value > 0, "Deposit amount must be greater than 0");
+        userAccount[msg.sender] += msg.value;
+        return "Amount deposited successfully!";
     }
 
-    // Function to get student details by their ID
-    function getStudent(int stud_id) public view returns (string memory, string memory) {
-        for (uint i = 0; i < students.length; i++) {
-            if (students[i].stud_id == stud_id) {
-                return (students[i].name, students[i].department);  // Return name and department
-            }
-        }
-        return ("Student Not Found", "Department Not Found");  // Default if student ID doesn't exist
+    // Withdraw money from the user's account
+    function withdraw(uint amount) public returns (string memory) {
+        require(userExists[msg.sender], "Account does not exist!");
+        require(amount > 0, "Withdrawal amount must be greater than 0");
+        require(userAccount[msg.sender] >= amount, "Insufficient balance");
+
+        userAccount[msg.sender] -= amount;
+        payable(msg.sender).transfer(amount);  // Transfer Ether back to the user
+        return "Amount withdrawn successfully!";
     }
 
-    // Fallback function to handle unknown calls
-    fallback() external payable {
-        students.push(Student(0, "Fallback Student", "Fallback Dept"));  
+    // View the current balance of the user
+    function getBalance() public view returns (uint) {
+        require(userExists[msg.sender], "Account does not exist!");
+        return userAccount[msg.sender];
     }
 
-    // Receive function to accept Ether transfers
-    receive() external payable {}
-
-    // Function to check the balance of the contract (optional)
-    function getContractBalance() public view returns (uint) {
-        return address(this).balance;
-    }
-
-    // Function to get the total number of students
-    function getStudentCount() public view returns (uint) {
-        return students.length;
+    // Check if the user's account exists
+    function doesAccountExist() public view returns (bool) {
+        return userExists[msg.sender];
     }
 }
+
+
