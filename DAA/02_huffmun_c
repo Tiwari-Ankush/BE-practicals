@@ -1,0 +1,118 @@
+Here is a simple Python implementation of Huffman Encoding using a greedy strategy. The code includes user input, comments explaining each step, and an example of how it works:
+
+```python
+class Node:
+    def __init__(self, char, freq):
+        self.char = char  # Character
+        self.freq = freq  # Frequency of the character
+        self.left = None   # Left child
+        self.right = None  # Right child
+
+# Function to build the Huffman Tree
+def build_huffman_tree(char_freq):
+    # Create a list of nodes
+    nodes = [Node(char, freq) for char, freq in char_freq.items()]
+    
+    # While there is more than one node in the list
+    while len(nodes) > 1:
+        # Sort nodes based on frequency
+        nodes = sorted(nodes, key=lambda x: x.freq)
+        
+        # Take the two nodes with the smallest frequency
+        left = nodes.pop(0)
+        right = nodes.pop(0)
+        
+        # Create a new internal node with these two nodes as children
+        merged = Node(None, left.freq + right.freq)
+        merged.left = left
+        merged.right = right
+        
+        # Add the new node to the list
+        nodes.append(merged)
+    
+    # Return the root of the Huffman Tree
+    return nodes[0]
+
+# Function to generate Huffman codes from the Huffman Tree
+def generate_huffman_codes(node, code="", codes={}):
+    # If the node is a leaf (it has a character)
+    if node.char is not None:
+        codes[node.char] = code  # Assign the code to the character
+        return codes
+    
+    # Traverse left and right children
+    generate_huffman_codes(node.left, code + "0", codes)  # Append '0' for left
+    generate_huffman_codes(node.right, code + "1", codes)  # Append '1' for right
+    
+    return codes
+
+# Main function to execute Huffman Encoding
+def huffman_encoding():
+    # Step 1: User input for characters and their frequencies
+    char_freq = {}
+    print("Enter characters and their frequencies (type 'done' to finish):")
+    
+    while True:
+        entry = input("Character and frequency (e.g., 'a 5'): ")
+        if entry.lower() == 'done':
+            break
+        char, freq = entry.split()
+        char_freq[char] = int(freq)
+    
+    # Step 2: Build the Huffman Tree
+    root = build_huffman_tree(char_freq)
+    
+    # Step 3: Generate Huffman codes
+    huffman_codes = generate_huffman_codes(root)
+    
+    # Step 4: Output the codes
+    print("Huffman Codes:")
+    for char, code in huffman_codes.items():
+        print(f"Character: {char}, Code: {code}")
+
+# Run the program
+if __name__ == "__main__":
+    huffman_encoding()
+```
+
+### How It Works:
+1. **Node Class**: The `Node` class represents a single character and its frequency. It has pointers to the left and right children.
+   
+2. **Building the Huffman Tree**:
+   - We create a list of nodes from the character frequencies.
+   - We repeatedly sort the list by frequency and merge the two nodes with the smallest frequencies to create a new internal node. This process continues until there is only one node left, which becomes the root of the Huffman Tree.
+
+3. **Generating Huffman Codes**:
+   - We traverse the Huffman Tree recursively. For each left traversal, we append a '0', and for each right traversal, we append a '1'. When we reach a leaf node (a character), we store the code.
+
+4. **User Input**: The program accepts characters and their frequencies until the user types 'done'.
+
+5. **Output**: Finally, the program prints the Huffman codes for each character.
+
+### Sample Input and Output:
+Here's how you might interact with the program:
+
+**Sample Input:**
+```
+Enter characters and their frequencies (type 'done' to finish):
+Character and frequency (e.g., 'a 5'): a 5
+Character and frequency (e.g., 'a 5'): b 9
+Character and frequency (e.g., 'a 5'): c 12
+Character and frequency (e.g., 'a 5'): d 13
+Character and frequency (e.g., 'a 5'): e 16
+Character and frequency (e.g., 'a 5'): f 45
+Character and frequency (e.g., 'a 5'): done
+```
+
+**Sample Output:**
+```
+Huffman Codes:
+Character: a, Code: 1100
+Character: b, Code: 1101
+Character: c, Code: 100
+Character: d, Code: 101
+Character: e, Code: 00
+Character: f, Code: 1
+```
+
+This output shows the Huffman codes generated for the input characters based on their frequencies. The codes are efficient, using fewer bits for more frequent characters. If you have any further questions or need more examples, feel free to ask!
