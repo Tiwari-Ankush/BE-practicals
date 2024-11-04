@@ -48,3 +48,82 @@ contract StudentManagement {
         return students.length;
     }
 }
+
+
+
+
+
+
+
+-----------------------------------
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+// Build the Contract
+contract StudentData {
+    // Create a structure for student details
+    struct Student {
+        int ID;
+        string fName;
+        string lName;
+        string course;       // New attribute for course
+        int[2] marks;
+        uint wallet;         // Wallet balance for each student
+    }
+
+    address owner;
+    int public stdCount = 0;
+    mapping(int => Student) public stdRecords;
+
+    // Modifier to allow only the owner to add records
+    modifier onlyOwner {
+        require(owner == msg.sender, "Only the owner can add records.");
+        _;
+    }
+
+    // Constructor to set the contract owner
+    constructor() {
+        owner = msg.sender;
+    }
+
+    // Function to add new student records
+    function addNewRecords(int _ID, string memory _fName, string memory _lName, string memory _course, int[2] memory _marks) public onlyOwner {
+        // Increase the count by 1
+        stdCount += 1;
+
+        // Add the student details to stdRecords mapping
+        stdRecords[stdCount] = Student(_ID, _fName, _lName, _course, _marks, 0);  // Initialize wallet balance to 0
+    }
+
+    // Function to deposit money into a student's wallet
+    function depositMoney(int _stdCount) public payable {
+        require(msg.value > 0, "Deposit amount must be greater than 0.");
+        require(_stdCount > 0 && _stdCount <= stdCount, "Invalid student ID.");
+
+        // Increase student's wallet balance
+        stdRecords[_stdCount].wallet += msg.value;
+    }
+
+    // Function to withdraw money from a student's wallet
+    function withdrawMoney(int _stdCount, uint amount) public {
+        require(_stdCount > 0 && _stdCount <= stdCount, "Invalid student ID.");
+        require(stdRecords[_stdCount].wallet >= amount, "Insufficient balance.");
+
+        // Decrease student's wallet balance
+        stdRecords[_stdCount].wallet -= amount;
+
+        // Transfer amount to the student's address
+        payable(msg.sender).transfer(amount);
+    }
+
+    // Function to get student details including wallet balance
+    function getStudent(int _stdCount) public view returns (int, string memory, string memory, string memory, int[2] memory, uint) {
+        Student memory s = stdRecords[_stdCount];
+        return (s.ID, s.fName, s.lName, s.course, s.marks, s.wallet);
+    }
+
+    // Receive function to accept Ether transfers
+    receive() external payable {}
+}
+
